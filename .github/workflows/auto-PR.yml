@@ -6,7 +6,7 @@ on:
       pr-title:
         description: 'Pull request title'
         required: false
-        default: 'Automated changes'
+        default: 'Update README.md'
 
 jobs:
   create-branch-and-pr:
@@ -21,36 +21,45 @@ jobs:
 
       - name: Generate random branch name
         id: branch-gen
-        uses: boonya/gh-action-name-generator@v1
-        with:
-          style: lowerCase
-
-      - name: Make some changes
         run: |
-          echo "Timestamp: $(date +%s)" > changes.txt
-          echo "Branch: ${{ steps.branch-gen.outputs.name }}" >> changes.txt
-          echo "Created by workflow dispatch" >> changes.txt
+          RANDOM_NAME="auto-$(date +%s)-$RANDOM"
+          echo "name=$RANDOM_NAME" >> $GITHUB_OUTPUT
+
+      - name: Update README.md
+        run: |
+          echo "" >> README.md
+          echo "---" >> README.md
+          echo "" >> README.md
+          echo "**Last Updated:** $(date)" >> README.md
+          echo "" >> README.md
+          echo "_Updated by GitHub Actions Bot_" >> README.md
 
       - name: Create Pull Request
         id: cpr
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'Add automated changes'
+          commit-message: 'docs: update README.md'
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           branch: feature/${{ steps.branch-gen.outputs.name }}
           delete-branch: true
           title: ${{ inputs.pr-title }}
           body: |
-            ## Automated Changes
+            ## Automated README Update
             
-            Yeh PR workflow_dispatch se automatically create hua hai.
+            README.md automatically updated by workflow.
             
-            - Branch: feature/${{ steps.branch-gen.outputs.name }}
-            - Triggered by: @${{ github.actor }}
-            - Timestamp: $(date)
+            **Branch:** feature/${{ steps.branch-gen.outputs.name }}
+            **Triggered by:** @${{ github.actor }}
           labels: |
+            documentation
             automated
-            bot
-          draft
+          draft: false
+
+      - name: PR Details
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        run: |
+          echo "✅ Pull Request Created!"
+          echo "PR #${{ steps.cpr.outputs.pull-request-number }}"
+          echo "URL: ${{ steps.cpr.outputs.pull-request-url }}"
