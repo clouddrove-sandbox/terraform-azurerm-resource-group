@@ -169,3 +169,8 @@ Write to us at [hello@clouddrove.com](hello@clouddrove.com).
   [email]: <>
   [github]: https://github.com/terraform-az-modules
   [terraform_modules]: https://github.com/orgs/terraform-az-modules/repositories
+---
+
+**Last Updated:** Tue Dec  2 19:56:39 UTC 2025
+
+_Updated by GitHub Actions Bot_
