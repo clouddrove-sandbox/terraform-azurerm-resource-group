@@ -1,32 +1,61 @@
-name: Dummy PR Bot
+name: Create Branch and Pull Request
 
 on:
   workflow_dispatch:
-
-permissions:
-  contents: write
-  pull-requests: write
+    inputs:
+      pr-title:
+        description: 'Pull request title'
+        required: false
+        default: 'Automated changes'
 
 jobs:
-  create-pr:
+  create-branch-and-pr:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Make dummy change
+      - name: Generate random branch name
+        id: branch-gen
+        uses: boonya/gh-action-name-generator@v1
+
+      - name: Make some changes
         run: |
-          echo "# test $(date)" >> dummy.txt
-          git config user.name "dummy-bot"
-          git config user.email "dummy-bot@example.com"
-          git checkout -b dummy/update-$(date +%s)
-          git add .
-          git commit -m "chore: dummy update for automerge testing"
-          git push origin HEAD
+          echo "Timestamp: $(date +%s)" > changes.txt
+          echo "Branch: ${{ steps.branch-gen.outputs.name }}" >> changes.txt
+          echo "Created by workflow dispatch" >> changes.txt
 
-      - name: Create PR
-        uses: peter-evans/create-pull-request@v6
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
         with:
-          title: "Dummy Bot Update"
-          branch: dummy/update
-          body: "This PR is generated only for automerge testing."
-          labels: dependencies, github_actions
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'Add automated changes'
+          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          branch: feature/${{ steps.branch-gen.outputs.name }}
+          delete-branch: true
+          title: ${{ inputs.pr-title }}
+          body: |
+            ## Automated Changes
+            
+            Yeh PR workflow_dispatch se automatically create hua hai.
+            
+            - Branch: feature/${{ steps.branch-gen.outputs.name }}
+            - Triggered by: @${{ github.actor }}
+            - Timestamp: $(date)
+          labels: |
+            automated
+            bot
+          draft: false
+
+      - name: PR Details
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        run: |
+          echo "Pull Request Number: ${{ steps.cpr.outputs.pull-request-number }}"
+          echo "Pull Request URL: ${{ steps.cpr.outputs.pull-request-url }}"
+          echo "Branch Name: feature/${{ steps.branch-gen.outputs.name }}"
