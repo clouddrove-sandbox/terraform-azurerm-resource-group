@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         tf-checks: ["tf-lint / tflint", "tfsec / tfsec sarif report", "${{ inputs.tfcheck }}"]
-    if: github.actor == 'github-actions[bot]' && !inputs.azure_cloud
+    if: (github.actor == 'dependabot[bot]' || github.actor == 'github-actions[bot]') && !inputs.azure_cloud
     steps:
       - name: Wait for 2 Minutes
         run: sleep 120s
@@ -53,7 +53,7 @@ jobs:
       checks: read
       pull-requests: read
     if: |
-      github.actor == 'github-actions[bot]' &&
+      (github.actor == 'dependabot[bot]' || github.actor == 'github-actions[bot]') &&
       inputs.azure_cloud == true &&
       inputs.tfchecks_azure != '[]'
     strategy:
@@ -77,13 +77,14 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    name: Auto Approve PRs by GitHub Actions Bot
+    name: Auto Approve PRs by Bots
     needs: [static-checks, static-checks-azure]
     runs-on: ubuntu-latest
     if: |
       always() &&
-      github.actor == 'github-actions[bot]' &&
-      (needs.static-checks.result == 'success' || needs.static-checks-azure.result == 'success')
+      (github.actor == 'dependabot[bot]' || github.actor == 'github-actions[bot]') &&
+      (needs.static-checks.result == 'success' || needs.static-checks.result == 'skipped' || 
+       needs.static-checks-azure.result == 'success' || needs.static-checks-azure.result == 'skipped')
     steps:
       - name: Approve PR via GitHub Bot
         run: gh pr review --approve "$PR_URL"
@@ -110,8 +111,8 @@ jobs:
         uses: pascalgn/automerge-action@v0.16.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB }}
-          MERGE_FILTER_AUTHOR: 'github-actions[bot]'
+          MERGE_FILTER_AUTHOR: 'dependabot[bot],github-actions[bot]'
           MERGE_METHOD: "merge"
           MERGE_DELETE_BRANCH: "true"
-          MERGE_LABELS: "automated, bot"
+          MERGE_LABELS: ""
           MERGE_REQUIRED_APPROVALS: ""
