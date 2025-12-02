@@ -22,6 +22,8 @@ jobs:
       - name: Generate random branch name
         id: branch-gen
         uses: boonya/gh-action-name-generator@v1
+        with:
+          style: lowerCase
 
       - name: Make some changes
         run: |
@@ -51,11 +53,4 @@ jobs:
           labels: |
             automated
             bot
-          draft: false
-
-      - name: PR Details
-        if: ${{ steps.cpr.outputs.pull-request-number }}
-        run: |
-          echo "Pull Request Number: ${{ steps.cpr.outputs.pull-request-number }}"
-          echo "Pull Request URL: ${{ steps.cpr.outputs.pull-request-url }}"
-          echo "Branch Name: feature/${{ steps.branch-gen.outputs.name }}"
+          draft
