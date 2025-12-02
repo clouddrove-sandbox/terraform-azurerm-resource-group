@@ -1,13 +1,14 @@
 name: Auto merge
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
 permissions:
   contents: write
   checks: read
   pull-requests: write
 jobs:
   auto-merge:
-    uses: .github/workflows/sample.yml@master
+    uses: ./.github/workflows/sample.yml
     with:
       azure_cloud: true
       tfchecks_azure: '["pr-validation / 📝 Validate PR title", "pr-validation / 🧾 Validate Commit Messages", "tf-lint / tflint"]'
