@@ -1,0 +1,32 @@
+name: Dummy PR Bot
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make dummy change
+        run: |
+          echo "# test $(date)" >> dummy.txt
+          git config user.name "dummy-bot"
+          git config user.email "dummy-bot@example.com"
+          git checkout -b dummy/update-$(date +%s)
+          git add .
+          git commit -m "chore: dummy update for automerge testing"
+          git push origin HEAD
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: "Dummy Bot Update"
+          branch: dummy/update
+          body: "This PR is generated only for automerge testing."
+          labels: dependencies, github_actions
