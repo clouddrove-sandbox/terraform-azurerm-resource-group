@@ -1,0 +1,20 @@
+name: Dependabot Poke
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  dummy-check:
+    name: Dummy Check for Dependabot
+    runs-on: ubuntu-latest
+    steps:
+      # INTENTIONALLY OLD VERSION so Dependabot will want to bump it
+      - name: Checkout (old on purpose)
+        uses: actions/checkout@v3
+
+      - name: No-op
+        run: echo "This job only exists so Dependabot can open a PR to update checkout."
