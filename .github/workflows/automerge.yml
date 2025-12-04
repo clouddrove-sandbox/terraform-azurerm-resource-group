@@ -2,12 +2,16 @@ name: Auto merge
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+
 permissions:
   contents: write
   checks: read
   pull-requests: write
+
 jobs:
   auto-merge:
+    # Only run for github-actions bot PRs
+    if: github.actor == 'github-actions[bot]'
     uses: ./.github/workflows/sample.yml
     with:
       azure_cloud: true
