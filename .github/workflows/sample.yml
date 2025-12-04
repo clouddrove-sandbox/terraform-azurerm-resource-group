@@ -27,59 +27,39 @@ jobs:
   static-checks:
     name: Check Static Analysis
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        tf-checks: ["tf-lint / tflint", "tfsec / tfsec sarif report", "${{ inputs.tfcheck }}"]
     if: github.actor == 'github-actions[bot]' && !inputs.azure_cloud
     steps:
       - name: Wait for 2 Minutes
-        run: sleep 120
+        run: sleep 120s
         shell: bash
 
-      - name: Wait for "${{ matrix.tf-checks }}" to Succeed
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB || secrets.GITHUB_TOKEN }}
-          CHECK_NAME: ${{ matrix.tf-checks }}
-          PR_SHA: ${{ github.event.pull_request.head.sha }}
-          REPO: ${{ github.repository }}
-        run: |
-          #!/bin/bash
-          set -e
-          
-          MAX_ATTEMPTS=60
-          WAIT_INTERVAL=30
-          attempt=0
-          
-          echo "Waiting for check: $CHECK_NAME"
-          
-          while [ $attempt -lt $MAX_ATTEMPTS ]; do
-            # Get check runs for this commit
-            check_status=$(gh api \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              "/repos/$REPO/commits/$PR_SHA/check-runs" \
-              --jq ".check_runs[] | select(.name == \"$CHECK_NAME\") | .conclusion")
-            
-            if [ -z "$check_status" ]; then
-              echo "Check not found yet, waiting..."
-            elif [ "$check_status" == "success" ]; then
-              echo "✅ Check '$CHECK_NAME' succeeded!"
-              exit 0
-            elif [ "$check_status" == "null" ]; then
-              echo "Check is still running..."
-            else
-              echo "❌ Check '$CHECK_NAME' failed with conclusion: $check_status"
-              exit 1
-            fi
-            
-            attempt=$((attempt + 1))
-            echo "Attempt $attempt/$MAX_ATTEMPTS - waiting ${WAIT_INTERVAL}s..."
-            sleep $WAIT_INTERVAL
-          done
-          
-          echo "❌ Timeout waiting for check '$CHECK_NAME'"
-          exit 1
-        shell: bash
+      - name: Wait for "tf-lint / tflint" to Succeed
+        uses: lewagon/wait-on-check-action@v1.4.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'tf-lint / tflint'
+          repo-token: ${{ secrets.GITHUB || secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+          allowed-conclusions: success
+
+      - name: Wait for "tfsec / tfsec sarif report" to Succeed
+        uses: lewagon/wait-on-check-action@v1.4.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'tfsec / tfsec sarif report'
+          repo-token: ${{ secrets.GITHUB || secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+          allowed-conclusions: success
+
+      - name: Wait for "${{ inputs.tfcheck }}" to Succeed
+        if: inputs.tfcheck != ''
+        uses: lewagon/wait-on-check-action@v1.4.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: ${{ inputs.tfcheck }}
+          repo-token: ${{ secrets.GITHUB || secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+          allowed-conclusions: success
 
   static-checks-azure:
     name: Check Static Analysis for Azure
@@ -92,58 +72,37 @@ jobs:
       github.actor == 'github-actions[bot]' &&
       inputs.azure_cloud == true &&
       inputs.tfchecks_azure != '[]'
-    strategy:
-      matrix:
-        tf-checks: ${{ fromJSON(inputs.tfchecks_azure) }}
     steps:
       - name: Wait for 2 Minutes
-        run: sleep 120
+        run: sleep 120s
         shell: bash
 
-      - name: Wait for "${{ matrix.tf-checks }}" to Succeed
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB || secrets.GITHUB_TOKEN }}
-          CHECK_NAME: ${{ matrix.tf-checks }}
-          PR_SHA: ${{ github.event.pull_request.head.sha }}
-          REPO: ${{ github.repository }}
-        run: |
-          #!/bin/bash
-          set -e
-          
-          MAX_ATTEMPTS=60
-          WAIT_INTERVAL=30
-          attempt=0
-          
-          echo "Waiting for check: $CHECK_NAME"
-          
-          while [ $attempt -lt $MAX_ATTEMPTS ]; do
-            # Get check runs for this commit
-            check_status=$(gh api \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              "/repos/$REPO/commits/$PR_SHA/check-runs" \
-              --jq ".check_runs[] | select(.name == \"$CHECK_NAME\") | .conclusion")
-            
-            if [ -z "$check_status" ]; then
-              echo "Check not found yet, waiting..."
-            elif [ "$check_status" == "success" ]; then
-              echo "✅ Check '$CHECK_NAME' succeeded!"
-              exit 0
-            elif [ "$check_status" == "null" ]; then
-              echo "Check is still running..."
-            else
-              echo "❌ Check '$CHECK_NAME' failed with conclusion: $check_status"
-              exit 1
-            fi
-            
-            attempt=$((attempt + 1))
-            echo "Attempt $attempt/$MAX_ATTEMPTS - waiting ${WAIT_INTERVAL}s..."
-            sleep $WAIT_INTERVAL
-          done
-          
-          echo "❌ Timeout waiting for check '$CHECK_NAME'"
-          exit 1
-        shell: bash
+      - name: Wait for "pr-validation / 📝 Validate PR title" to Succeed
+        uses: lewagon/wait-on-check-action@v1.4.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'pr-validation / 📝 Validate PR title'
+          repo-token: ${{ secrets.GITHUB || secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+          allowed-conclusions: success
+
+      - name: Wait for "pr-validation / 🧾 Validate Commit Messages" to Succeed
+        uses: lewagon/wait-on-check-action@v1.4.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'pr-validation / 🧾 Validate Commit Messages'
+          repo-token: ${{ secrets.GITHUB || secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+          allowed-conclusions: success
+
+      - name: Wait for "tf-lint / tflint" to Succeed
+        uses: lewagon/wait-on-check-action@v1.4.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'tf-lint / tflint'
+          repo-token: ${{ secrets.GITHUB || secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+          allowed-conclusions: success
 
   autoapprove:
     permissions:
@@ -155,7 +114,8 @@ jobs:
     if: |
       always() &&
       github.actor == 'github-actions[bot]' &&
-      (needs.static-checks.result == 'success' || needs.static-checks-azure.result == 'success')
+      (needs.static-checks.result == 'success' || needs.static-checks-azure.result == 'success' || 
+       needs.static-checks.result == 'skipped' || needs.static-checks-azure.result == 'skipped')
     steps:
       - name: Approve PR via GitHub Bot
         run: gh pr review --approve "$PR_URL"
