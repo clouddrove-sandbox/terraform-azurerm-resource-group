@@ -52,10 +52,10 @@ jobs:
         id: cpr
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB }}  # ⭐ Changed from GITHUB_TOKEN to PAT
           commit-message: 'chore: add terraform file comments'
-          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          committer: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
           branch: feature/${{ steps.branch-gen.outputs.name }}
           delete-branch: true
           title: ${{ inputs.pr-title }}
