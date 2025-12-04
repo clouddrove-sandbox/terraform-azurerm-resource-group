@@ -23,3 +23,6 @@ output "tags" {
   value       = module.resource_group.tags
   description = "A mapping of tags which should be assigned to the Resource Group."
 }
+
+# Updated: 2025-12-04 17:47:29
+# Automated update by GitHub Actions

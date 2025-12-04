@@ -41,3 +41,6 @@ resource "azurerm_management_lock" "resource-group-level" {
   lock_level = var.lock_level
   notes      = var.notes
 }
+
+# Updated: 2025-12-04 17:47:29
+# Automated update by GitHub Actions
