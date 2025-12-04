@@ -10,8 +10,7 @@ permissions:
 
 jobs:
   auto-merge:
-    # Only run for github-actions bot PRs
-    if: github.actor == 'github-actions[bot]'
+    # ⭐ No actor filter - works for anyone
     uses: ./.github/workflows/sample.yml
     with:
       azure_cloud: true
