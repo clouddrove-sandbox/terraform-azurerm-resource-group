@@ -6,7 +6,7 @@ on:
       pr-title:
         description: 'Pull request title'
         required: false
-        default: 'Update README.md'
+        default: 'chore: add terraform comments'
 
 jobs:
   create-branch-and-pr:
@@ -25,36 +25,52 @@ jobs:
           RANDOM_NAME="auto-$(date +%s)-$RANDOM"
           echo "name=$RANDOM_NAME" >> $GITHUB_OUTPUT
 
-      - name: Update README.md
+      - name: Add comments to Terraform files
         run: |
-          echo "" >> README.md
-          echo "---" >> README.md
-          echo "" >> README.md
-          echo "**Last Updated:** $(date)" >> README.md
-          echo "" >> README.md
-          echo "_Updated by GitHub Actions Bot_" >> README.md
+          #!/bin/bash
+          
+          # Find all .tf files
+          tf_files=$(find . -name "*.tf" -type f | grep -v ".terraform" | head -5)
+          
+          if [ -z "$tf_files" ]; then
+            echo "No Terraform files found!"
+            exit 1
+          fi
+          
+          # Add comment to each file
+          for file in $tf_files; do
+            echo "" >> "$file"
+            echo "# Updated: $(date '+%Y-%m-%d %H:%M:%S')" >> "$file"
+            echo "# Automated update by GitHub Actions" >> "$file"
+            echo "Updated: $file"
+          done
+          
+          echo "✅ Comments added to Terraform files"
+        shell: bash
 
       - name: Create Pull Request
         id: cpr
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'docs: update README.md'
+          commit-message: 'chore: add terraform file comments'
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           branch: feature/${{ steps.branch-gen.outputs.name }}
           delete-branch: true
           title: ${{ inputs.pr-title }}
           body: |
-            ## Automated README Update
+            ## Automated Terraform Update
             
-            README.md automatically updated by workflow.
+            Terraform files automatically updated with comments by workflow.
             
             **Branch:** feature/${{ steps.branch-gen.outputs.name }}
             **Triggered by:** @${{ github.actor }}
+            **Timestamp:** $(date)
           labels: |
-            documentation
+            terraform
             automated
+            github_actions
           draft: false
 
       - name: PR Details
