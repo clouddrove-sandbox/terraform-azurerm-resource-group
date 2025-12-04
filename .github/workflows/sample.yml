@@ -27,7 +27,7 @@ jobs:
   static-checks:
     name: Check Static Analysis
     runs-on: ubuntu-latest
-    if: github.actor == 'github-actions[bot]' && !inputs.azure_cloud
+    if: ${{ !inputs.azure_cloud }}  # ⭐ Removed actor check
     steps:
       - name: Wait for 2 Minutes
         run: sleep 120s
@@ -69,7 +69,6 @@ jobs:
       checks: read
       pull-requests: read
     if: |
-      github.actor == 'github-actions[bot]' &&
       inputs.azure_cloud == true &&
       inputs.tfchecks_azure != '[]'
     steps:
@@ -108,12 +107,11 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    name: Auto Approve PRs by GitHub Actions Bot
+    name: Auto Approve PRs
     needs: [static-checks, static-checks-azure]
     runs-on: ubuntu-latest
     if: |
       always() &&
-      github.actor == 'github-actions[bot]' &&
       (needs.static-checks.result == 'success' || needs.static-checks-azure.result == 'success' || 
        needs.static-checks.result == 'skipped' || needs.static-checks-azure.result == 'skipped')
     steps:
@@ -142,8 +140,7 @@ jobs:
         uses: pascalgn/automerge-action@v0.16.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB }}
-          MERGE_FILTER_AUTHOR: 'github-actions[bot]'
           MERGE_METHOD: "merge"
           MERGE_DELETE_BRANCH: "true"
-          MERGE_LABELS: "dependencies, github_actions"
+          MERGE_LABELS: "terraform,automated,github_actions"
           MERGE_REQUIRED_APPROVALS: ""
