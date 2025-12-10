@@ -50,7 +50,7 @@ jobs:
 
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB }}  # ⭐ Changed from GITHUB_TOKEN to PAT
           commit-message: 'chore: add terraform file comments'
